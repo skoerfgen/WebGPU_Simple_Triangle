@@ -1,0 +1,77 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+<body>
+<script>
+(async()=>{
+	'use strict';
+
+	const adapter=await navigator.gpu.requestAdapter();
+	const device=await adapter.requestDevice();
+	const canvas=document.createElement('canvas');
+	const context=canvas.getContext('webgpu');
+	
+	canvas.style.outline='1px solid red';
+	document.body.append(canvas);
+
+  context.configure({
+    device:device,
+    format:navigator.gpu.getPreferredCanvasFormat(),
+    alphaMode:'premultiplied'
+  });
+	
+	const cellShaderModule = device.createShaderModule({
+		label:'shader module',
+		code:`
+			
+			const TRI_VERTICES = array(
+				vec4(0.0,  0.6, 0, 1),
+				vec4(-0.5, -0.6, 0, 1),
+				vec4(0.5, -0.6, 0, 1),
+			);
+
+			@vertex
+			fn vertexMain(@builtin(vertex_index) idx:u32) -> @builtin(position) vec4f {
+				return TRI_VERTICES[idx];
+			} 
+			@fragment
+			fn fragmentMain() -> @location(0) vec4f {
+				return vec4f(1.0, 0, 0, 1.0); // Red (RGBA)
+			}
+		`
+	});
+	
+	const renderPipeline = device.createRenderPipeline({
+		layout:'auto',
+		vertex:{
+			module:cellShaderModule,
+			entryPoint:'vertexMain',
+		},
+		fragment:{
+			module:cellShaderModule,
+			entryPoint:'fragmentMain',
+			targets: [{
+				format: navigator.gpu.getPreferredCanvasFormat()
+			}]
+		}
+	});
+	
+	
+	const encoder=device.createCommandEncoder();
+	const pass = encoder.beginRenderPass({
+		colorAttachments: [{
+			view: context.getCurrentTexture().createView(),
+			loadOp: 'clear',
+			clearValue: { r: 0, g: 0, b: 0.4, a: 1 },
+			storeOp: 'store',
+		}]
+	});
+	
+	pass.setPipeline(renderPipeline);
+	pass.draw(3);
+	pass.end();
+	const commandBuffer=encoder.finish();
+	device.queue.submit([commandBuffer]);
+
+})();
+</script>
