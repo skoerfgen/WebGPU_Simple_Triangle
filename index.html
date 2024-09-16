@@ -14,18 +14,18 @@
 	canvas.style.outline='1px solid red';
 	document.body.append(canvas);
 
-  context.configure({
-    device:device,
-    format:navigator.gpu.getPreferredCanvasFormat(),
-    alphaMode:'premultiplied'
-  });
+	context.configure({
+		device:device,
+		format:navigator.gpu.getPreferredCanvasFormat(),
+		alphaMode:'premultiplied'
+	});
 	
 	const cellShaderModule = device.createShaderModule({
 		label:'shader module',
 		code:`
 			
 			const TRI_VERTICES = array(
-				vec4(0.0,  0.6, 0, 1),
+				vec4(0.0,	 0.6, 0, 1),
 				vec4(-0.5, -0.6, 0, 1),
 				vec4(0.5, -0.6, 0, 1),
 			);
